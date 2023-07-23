@@ -1,0 +1,122 @@
+async function main(workbook: ExcelScript.Workbook) {
+  const worksheet = workbook.getWorksheet("GetStockRealtimesByGroup");
+  clearData(worksheet);
+  const categories = worksheet.getRange("B2").getValue().toString();
+  const categoriesList = categories.split(",");
+  let rowCount = 0;
+  let lastRow = worksheet.getRange("A1:Y5").getRowCount();
+  for (let category of categoriesList) {
+    const result = await getResult(category);
+    rowCount = result.length;
+    if (rowCount > 0) {
+      worksheet.getRangeByIndexes(lastRow, 0, rowCount, 25).setValues(result);
+    }
+  };
+}
+
+function clearData(worksheet: ExcelScript.Worksheet) {
+  const lastRow = worksheet.getUsedRange().getRowCount();
+  if (lastRow > 5) {
+    let dataRange = worksheet.getRangeByIndexes(6, 0, lastRow, 25);
+    dataRange.delete(ExcelScript.DeleteShiftDirection.up);
+  }
+}
+
+async function getResult(category: string) {
+  const requestBody = { "operationName": "stockRealtimesByGroup", "variables": { "group": category }, "query": "query stockRealtimesByGroup($group: String) {\n  stockRealtimesByGroup(group: $group) {\n    stockNo\n    ceiling\n    floor\n    refPrice\n    stockSymbol\n    stockType\n    exchange\n    lastMatchedPrice\n    matchedPrice\n    matchedVolume\n    priceChange\n    priceChangePercent\n    highest\n    avgPrice\n    lowest\n    nmTotalTradedQty\n    best1Bid\n    best1BidVol\n    best2Bid\n    best2BidVol\n    best3Bid\n    best3BidVol\n    best4Bid\n    best4BidVol\n    best5Bid\n    best5BidVol\n    best6Bid\n    best6BidVol\n    best7Bid\n    best7BidVol\n    best8Bid\n    best8BidVol\n    best9Bid\n    best9BidVol\n    best10Bid\n    best10BidVol\n    best1Offer\n    best1OfferVol\n    best2Offer\n    best2OfferVol\n    best3Offer\n    best3OfferVol\n    best4Offer\n    best4OfferVol\n    best5Offer\n    best5OfferVol\n    best6Offer\n    best6OfferVol\n    best7Offer\n    best7OfferVol\n    best8Offer\n    best8OfferVol\n    best9Offer\n    best9OfferVol\n    best10Offer\n    best10OfferVol\n    buyForeignQtty\n    buyForeignValue\n    sellForeignQtty\n    sellForeignValue\n    caStatus\n    tradingStatus\n    remainForeignQtty\n    currentBidQty\n    currentOfferQty\n    session\n    tradingUnit\n    __typename\n  }\n}\n" };
+    const response = await fetch('https://wgateway-iboard.ssi.com.vn/graphql', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Content-Length": JSON.stringify(requestBody).length.toString()
+        },
+        body: JSON.stringify(requestBody)
+    });
+    if (response.ok) {
+      const json: GetStockRealtimesByGroupResponse = await response.json();
+      const result: (string | number)[][] = [];
+      json.data.stockRealtimesByGroup.forEach(item => {
+        result.push([category, item.stockSymbol, item.ceiling, item.floor, item.refPrice, item.best3Bid, item.best3BidVol, item.best2Bid, item.best2BidVol, item.best1Bid, item.best1BidVol, item.matchedPrice, item.matchedVolume, item.best1Offer, item.best1OfferVol, item.best2Offer, item.best2OfferVol, item.best3Offer, item.best3OfferVol, item.nmTotalTradedQty, item.highest, item.lowest, item.buyForeignQtty, item.sellForeignQtty, item.remainForeignQtty]);
+      });
+      return result;
+    }
+}
+
+interface GetStockRealtimesByGroupResponse {
+  data: Data
+}
+
+interface Data {
+  stockRealtimesByGroup: Array<stockRealtimesByGroup>
+}
+
+interface stockRealtimesByGroup {
+  stockNo: string
+  ceiling: number
+  floor: number
+  refPrice: number
+  stockSymbol: string
+  stockType: string
+  exchange: string
+  lastMatchedPrice: number
+  matchedPrice: number
+  matchedVolume: number
+  priceChange: string
+  priceChangePercent: string
+  highest: number
+  avgPrice: number
+  lowest: number
+  nmTotalTradedQty: number
+  best1Bid: number
+  best1BidVol: number
+  best2Bid: number
+  best2BidVol: number
+  best3Bid: number
+  best3BidVol: number
+  best4Bid: number
+  best4BidVol: number
+  best5Bid: number
+  best5BidVol: number
+  best6Bid: number
+  best6BidVol: number
+  best7Bid: number
+  best7BidVol: number
+  best8Bid: number
+  best8BidVol: number
+  best9Bid: number
+  best9BidVol: number
+  best10Bid: number
+  best10BidVol: number
+  best1Offer: number
+  best1OfferVol: number
+  best2Offer: number
+  best2OfferVol: number
+  best3Offer: number
+  best3OfferVol: number
+  best4Offer: number
+  best4OfferVol: number
+  best5Offer: number
+  best5OfferVol: number
+  best6Offer: number
+  best6OfferVol: number
+  best7Offer: number
+  best7OfferVol: number
+  best8Offer: number
+  best8OfferVol: number
+  best9Offer: number
+  best9OfferVol: number
+  best10Offer: number
+  best10OfferVol: number
+  buyForeignQtty: number
+  buyForeignValue: number
+  sellForeignQtty: number
+  sellForeignValue: number
+  caStatus: string
+  tradingStatus: string
+  remainForeignQtty: number
+  currentBidQty: number
+  currentOfferQty: number
+  session: string
+  tradingUnit: string
+  __typename: string
+}
